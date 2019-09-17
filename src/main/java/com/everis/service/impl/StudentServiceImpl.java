@@ -3,44 +3,62 @@ package com.everis.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.everis.dao.IStudentDao;
-import com.everis.domain.Student;
-import com.everis.service.IStudentService;
+import com.everis.model.Student;
+import com.everis.repository.StudentRepository;
+import com.everis.service.StudentService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-public class StudentServiceImpl implements IStudentService {
+public class StudentServiceImpl implements StudentService {
 	
 	@Autowired
-	private IStudentDao dao;
+	private StudentRepository studentRepository;
 	
 	@Override
-	public void create(Student s) {
-		dao.save(s).subscribe();
+	public Mono<Student> create(Student student) {
+		return studentRepository.save(student);
 	}
 
 	@Override
 	public Mono<Student> findById(String id) {
-		return dao.findById(id);
+		return studentRepository.findById(id);
 	}
 
 	@Override
 	public Flux<Student> findAll() {
-		return dao.findAll();
+		return studentRepository.findAll();
+	}
+	
+	@Override
+	public Mono<Student> update(String id, Student updateStudent) {
+		return studentRepository.findById(id)
+		        .map(existingStudent -> existingStudent.toBuilder()
+		        		.fullName(updateStudent.getFullName())
+		        		.gender(updateStudent.getGender())
+						.dateOfBirth(updateStudent.getDateOfBirth())
+						.typeDocument(updateStudent.getTypeDocument())
+						.numberDocument(updateStudent.getNumberDocument())
+		              .build())
+		        .flatMap(studentRepository::save);
+	}
+	
+
+	@Override
+	public Mono<Student> deleteById(String id) {
+		return studentRepository.findById(id)
+		        .flatMap(student -> studentRepository.delete(student).then(Mono.just(student)));
 	}
 
 	@Override
-	public Mono<Student> update(Student s) {
-		return dao.save(s);
+	public Flux<Student> findByFullName(String fullName) {
+		return studentRepository.findByFullName(fullName);
 	}
 
 	@Override
-	public Mono<Void> delete(String id) {
-		return dao.deleteById(id);
-	}
-	
-	
+	public Flux<Student> findByNumberDocument(int numberDocument) {
+		return studentRepository.findByNumberDocument(numberDocument);
+	}	
 
 }

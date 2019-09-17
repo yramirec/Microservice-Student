@@ -1,6 +1,6 @@
-package com.everis.domain;
+package com.everis.model;
 
-import java.time.LocalDate;
+import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -8,20 +8,22 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Document(collection="students")
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Student {
 	@Id
 	private String id;	
 	private String fullName;
 	private String gender;	
 	@JsonFormat(pattern="yyyy-MM-dd")
-	private LocalDate dateOfBirth;
+	private Date dateOfBirth;
 	private String typeDocument;
 	private int numberDocument;
 

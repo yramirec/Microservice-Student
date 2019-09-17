@@ -1,6 +1,11 @@
 package com.everis.controller;
 
+import java.net.URI;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,44 +15,59 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.everis.domain.Student;
-import com.everis.service.IStudentService;
+import com.everis.model.Student;
+import com.everis.service.StudentService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@RestController//--
+@RestController // --
 @RequestMapping("/students")
 public class StudentController {
+
+	@Autowired
+	private StudentService studentService;
 	
-	@Autowired//--
-	private IStudentService service;
+	public StudentController(StudentService studentService) {
+	    this.studentService = studentService;
+	  }
 
 	@GetMapping
 	public Flux<Student> list() {
-		Flux<Student> students = service.findAll();
-		return students;
+		return studentService.findAll();
 	}
 
-	@GetMapping("/{id}")
-	public Mono<Student> listForId(@PathVariable String id) {
-		Mono<Student> student = service.findById(id);
-		return student;
+	@GetMapping("{id}")
+	public Mono<ResponseEntity<Student>> findById(@PathVariable String id) {
+		return studentService.findById(id).map(ResponseEntity::ok).defaultIfEmpty(ResponseEntity.notFound().build());
 	}
-	
+
 	@PostMapping
-	public void create(@RequestBody Student s) {
-        service.create(s);
-    }
-	
-	@PutMapping
-	public Mono<Student> update(@RequestBody Student s) {
-        return service.update(s);
-    }
-	
-	@DeleteMapping("/{id}")
-	public void delete(@PathVariable("id") String id) {
-        service.delete(id).subscribe();
-    }
+	public Mono<ResponseEntity<Student>> createStudent(@RequestBody @Valid Student student) {
+		Student studentToCrete = student.toBuilder().id(null).build();
+		return studentService.create(studentToCrete).map(
+				newStudent -> ResponseEntity.created(URI.create("/students/" + newStudent.getId())).body(newStudent));
+	}
+
+	@PutMapping("{id}")
+	public Mono<ResponseEntity<Student>> updateStudent(@PathVariable String id, @RequestBody @Valid Student student) {
+		return studentService.update(id, student).map(ResponseEntity::ok).defaultIfEmpty(ResponseEntity.notFound().build());
+	}
+
+	@DeleteMapping("{id}")
+	public Mono<ResponseEntity<Void>> deleteStudent(@PathVariable String id) {
+		return studentService.deleteById(id).map(r -> ResponseEntity.ok().<Void>build())
+				.defaultIfEmpty(ResponseEntity.notFound().build());
+	}
+
+	@GetMapping("/searchByName/{fullName}")
+	public Flux<Student> findByFullName(@PathVariable String fullName) {
+		return studentService.findByFullName(fullName);
+	}
+
+	@GetMapping("/searchByDocument/{numberDocument}")
+	public Flux<Student> findByNumberDocument(@PathVariable int numberDocument) {
+		return studentService.findByNumberDocument(numberDocument);
+	}
 
 }
