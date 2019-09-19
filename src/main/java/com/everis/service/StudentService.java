@@ -2,23 +2,61 @@ package com.everis.service;
 
 import com.everis.model.Student;
 
+import com.everis.repository.StudentRepository;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface StudentService {
 
-	Mono<Student> create(Student student);
 
-	Mono<Student> findById(String id);
+@Service
+public class StudentService {
 
-	Flux<Student> findAll();
+  private final StudentRepository studentRepository;
 
-	Mono<Student> update(String id, Student updateStudent);
+  public StudentService(StudentRepository studentRepository) {
+    this.studentRepository = studentRepository;
+  }
 
-	Mono<Student> deleteById(String id);
+  public Mono<Student> create(Student student) {
+    return studentRepository.save(student);
+  }
 
-	Flux<Student> findByFullName(String fullName);
+  public Mono<Student> findById(String id) {
+    return studentRepository.findById(id);
+  }
 
-	Flux<Student> findByNumberDocument(int numberDocument);
+  public Flux<Student> findAll() {
+    return studentRepository.findAll();
+  }
+
+  /**
+   * Method for Update Student By Id.
+   */
+  public Mono<Student> update(String id, Student updateStudent) {
+    return studentRepository.findById(id)
+        .map(existingStudent -> existingStudent.toBuilder()
+        .fullName(updateStudent.getFullName())
+        .gender(updateStudent.getGender())
+        .dateOfBirth(updateStudent.getDateOfBirth())
+        .typeDocument(updateStudent.getTypeDocument())
+        .numberDocument(updateStudent.getNumberDocument())
+        .build())
+        .flatMap(studentRepository::save);
+  }
+
+
+  public Mono<Student> deleteById(String id) {
+    return studentRepository.findById(id)
+        .flatMap(student -> studentRepository.delete(student).then(Mono.just(student)));
+  }
+
+  public Flux<Student> findByFullName(String fullName) {
+    return studentRepository.findByFullName(fullName);
+  }
+
+  public Flux<Student> findByNumberDocument(int numberDocument) {
+    return studentRepository.findByNumberDocument(numberDocument);
+  }
 
 }
