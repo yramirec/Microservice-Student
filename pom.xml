@@ -12,6 +12,8 @@
 	<groupId>com.everis</groupId>
 	<artifactId>microservice-a</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	
 	<name>microservice-a</name>
 	<description>Demo project for Spring Boot</description>
 
@@ -81,6 +83,12 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-config</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>
+				spring-cloud-starter-netflix-eureka-client
+			</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<repositories>
@@ -137,7 +145,10 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>app</finalName>
 	</build>
+	
+	
 
 	<dependencyManagement>
 		<dependencies>
